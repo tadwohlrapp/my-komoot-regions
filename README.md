@@ -14,7 +14,9 @@ This script offers two key features:
 
 * Additionally _My Komoot Regions_ shows you the exact number of **regions you can still unlock for free**.
 
-![Screen](https://raw.githubusercontent.com/tadwohlrapp/my-komoot-regions/main/screen.png)
+## Demo
+
+![Demo](https://raw.githubusercontent.com/tadwohlrapp/my-komoot-regions/main/demo.gif)
 
 ## Installation
 
