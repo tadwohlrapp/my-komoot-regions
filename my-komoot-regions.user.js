@@ -5,12 +5,14 @@
 // @description:de  Zeigt dir alle deine bereits freigeschalteten Regionen auf der Komoot Weltkarte an
 // @namespace       https://github.com/tadwohlrapp
 // @author          Tad Wohlrapp
-// @version         0.1.0
+// @version         0.1.1
 // @license         MIT
 // @homepageURL     https://github.com/tadwohlrapp/my-komoot-regions
 // @supportURL      https://github.com/tadwohlrapp/my-komoot-regions/issues
+// @updateURL       https://greasyfork.org/scripts/488715/code/script.meta.js
+// @downloadURL     https://greasyfork.org/scripts/488715/code/script.user.js
 // @icon            https://github.com/tadwohlrapp/my-komoot-regions/raw/main/icon.png
-// @include         https://*.komoot.tld/*product/regions*
+// @include         https://www.komoot.com/*product/regions*
 // @grant           GM_xmlhttpRequest
 // ==/UserScript==
 
