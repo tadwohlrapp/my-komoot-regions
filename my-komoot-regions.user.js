@@ -1,24 +1,28 @@
 // ==UserScript==
 // @name            My Komoot Regions
-// @description     Show me my unlocked regions on Komoot!
+// @name:de         Meine Komoot Regionen
+// @description     Shows you all your already unlocked regions on the Komoot world map
+// @description:de  Zeigt dir alle deine bereits freigeschalteten Regionen auf der Komoot Weltkarte an
 // @namespace       https://github.com/tadwohlrapp
 // @author          Tad Wohlrapp
-// @version         0.0.1
+// @version         0.1.0
 // @license         MIT
 // @homepageURL     https://github.com/tadwohlrapp/my-komoot-regions
 // @supportURL      https://github.com/tadwohlrapp/my-komoot-regions/issues
-// @match           https://www.komoot.de/product/regions
+// @icon            https://github.com/tadwohlrapp/my-komoot-regions/raw/main/icon.png
+// @include         https://*.komoot.tld/*product/regions*
 // @grant           GM_xmlhttpRequest
-// @run-at          document-idle
 // ==/UserScript==
 
 (function () {
   'use strict'
 
   unsafeWindow.komootMap = null
+  let unlockedRegions = []
   let features = []
-  let globalCounter = 0
+  let processedCount = 0
   let getMapTries = 0
+  const lang = document.documentElement.lang
 
   function findObjects(object, maxTries, stopAtPrefix) {
     let tries = 0
@@ -58,6 +62,7 @@
   }
 
   function getMap() {
+    if (unsafeWindow.komootMap) return
     const elements = document.getElementsByTagName('*')
     for (const el of elements) {
       if ((el.className && el.className.toString().toLowerCase().includes("map"))) {
@@ -74,65 +79,82 @@
           } else if (getMapTries < 10) {
             getMapTries++
             console.log(`Looking for map... (Attempt ${getMapTries}/10)`)
-            setTimeout(function () {
-              getMap()
-            }, 500)
+            setTimeout(() => getMap(), 500)
           }
         } else if (getMapTries < 10) {
           getMapTries++
           console.log(`Looking for map... (Attempt ${getMapTries}/10)`)
-          setTimeout(function () {
-            getMap()
-          }, 500)
+          setTimeout(() => getMap(), 500)
         }
       }
     }
   }
 
   function waitForGlobal() {
-    if (unsafeWindow.kmtBoot.getProps().packages.models) {
-      showMyFreeRegions()
-      findPurchasedRegions()
+    unlockedRegions = unsafeWindow.kmtBoot.getProps().packages.models
+    if (unlockedRegions) {
+      displayHeaderText()
+      processUnlockedRegions()
     } else {
-      setTimeout(function () {
-        waitForGlobal()
-      }, 500)
+      setTimeout(() => waitForGlobal(), 500)
     }
   }
 
-  function showMyFreeRegions() {
-    const freeRegionsCount = unsafeWindow.kmtBoot.getProps().freeProducts.length
-    let additionalText = `<br>Aktuell kannst du leider keine weiteren kostenlosen Regionen freischalten.`
-    if (freeRegionsCount > 0) {
-      additionalText = `<br>Du kannst noch <strong>${freeRegionsCount}</strong> Region${freeRegionsCount != 1 ? 'en' : ''} kostenlos freischalten! 🎉`
+  function displayHeaderText() {
+    const unlockedText = () => {
+      const count = unlockedRegions.length
+      switch (lang) {
+        case 'de':
+          return count > 0
+            ? `Du hast bereits ${count === 1 ? 'eine' : count} Region${count !== 1 ? 'en' : ''} freigeschaltet.`
+            : `Du hast noch keine Regionen freigeschaltet.`
+        default:
+          return count > 0
+            ? `You have unlocked ${count === 1 ? 'one' : count} region${count !== 1 ? 's' : ''} already.`
+            : `You haven't unlocked any regions yet.`
+      }
     }
-    document.querySelector('h2').innerHTML += additionalText
+    const availableText = () => {
+      const count = unsafeWindow.kmtBoot.getProps().freeProducts.length
+      switch (lang) {
+        case 'de':
+          return count > 0
+            ? `Du kannst noch <strong>${count === 1 ? 'eine' : count}</strong> weitere Region${count !== 1 ? 'en' : ''} kostenlos freischalten! 🎉`
+            : `Aktuell kannst du leider keine weiteren kostenlosen Regionen freischalten.`
+        default:
+          return count > 0
+            ? `You can still unlock <strong>${count === 1 ? 'one' : count}</strong> more region${count !== 1 ? 's' : ''} for free! 🎉`
+            : `Unfortunately, there are currently no more free regions to unlock.`
+      }
+    }
+    document.querySelector('h2').innerHTML = unlockedText() + '<br>' + availableText()
   }
 
-  function findPurchasedRegions() {
-    const packages = unsafeWindow.kmtBoot.getProps().packages.models
-    const myRegionIds = getMyRegionIds(packages)
-    console.log("Purchased regions:", myRegionIds)
+  const getUnlockedRegionIds = regions => regions.map(region => region.attributes.region.id)
 
-    myRegionIds.forEach(regionId => {
-      getGeometry(regionId, myRegionIds.length)
-    })
+  function processUnlockedRegions() {
+    const myRegionIds = getUnlockedRegionIds(unlockedRegions)
+    const div = document.createElement('div')
+    div.id = 'progress-container'
+    div.classList.add('tw-text-xs', 'tw-px-3', 'tw-py-1', 'tw-overflow-y-auto', 'tw-bg-white-90')
+    document.querySelector('.maplibregl-ctrl-top-left').append(div)
+
+    switch (lang) {
+      case 'de':
+        div.append(`Verarbeite ${myRegionIds.length} freigeschaltete Regionen...`)
+        break
+      default:
+        div.append(`Processing ${myRegionIds.length} unlocked regions...`)
+    }
+
+    myRegionIds.forEach(id => getGeometry(id, div))
   }
 
-  function getMyRegionIds(packages) {
-    let regionIds = []
-
-    const regionsArr = Array.from(packages)
-    regionsArr.forEach(region => {
-      regionIds.push(region.attributes.region.id)
-    })
-    return regionIds
-  }
-
-  function getGeometry(regionId, totalRegions) {
+  function getGeometry(id, div) {
+    const totalCount = unlockedRegions.length
     GM_xmlhttpRequest({
       method: 'GET',
-      url: `https://www.komoot.de/product/regions/?region=${regionId}`,
+      url: `https://www.komoot.com/product/regions?region=${id}`,
       data: false,
       headers: { "onlyprops": "true" },
       responseType: 'json',
@@ -140,12 +162,30 @@
 
         if (resp.response) {
           const { id, name, groupId: type, geometry } = resp.response.regions[0]
+          const children = Array.from(div.children)
+          children.forEach(child => child.classList.remove('region--active'))
+
+          const p = document.createElement('p')
+          p.classList.add('region', 'region--active')
+          div.append(p)
+          p.textContent = `${processedCount + 1}/${totalCount}: ${name}`
+
           buildGeoObject({ id, name, type, geometry })
-          globalCounter++
-          if (globalCounter === totalRegions) {
-            console.log('done fetching')
+          processedCount++
+          if (processedCount === totalCount) {
+            p.classList.remove('region--active')
             drawOnMap(features)
+
+            switch (lang) {
+              case 'de':
+                div.append('Fertig 👍')
+                break
+              default:
+                div.append('Done 👍')
+            }
+            setTimeout(() => div.remove(), 2000)
           }
+          div.scrollTo(0, div.scrollHeight)
         }
       },
     })
@@ -178,39 +218,88 @@
   }
 
   function drawOnMap(features) {
-    if (unsafeWindow.komootMap) {
-      const geoJsonData = {
-        "type": "FeatureCollection",
-        "features": features
-      }
-
-      const source = unsafeWindow.komootMap.getSource('TAD_my_regions')
-      if (source) {
-        source.setData(data)
-      } else {
-        unsafeWindow.komootMap.addSource('TAD_my_regions', {
-          type: 'geojson',
-          data: geoJsonData
-        })
-      }
-
-      unsafeWindow.komootMap.addLayer({
-        'id': 'TAD-my-regions',
-        'type': 'fill',
-        'source': 'TAD_my_regions',
-        'layout': {},
-        'paint': {
-          'fill-color': [
-            "case",
-            ["boolean", ["get", "region"]],
-            ["rgba", 16, 134, 232, 1],
-            ["rgba", 245, 82, 94, 1]
-          ],
-          'fill-opacity': 0.5
-        }
-      }, "komoot-selected-marker")
+    if (!unsafeWindow.komootMap) return
+    const geoJsonData = {
+      "type": "FeatureCollection",
+      "features": features
     }
+
+    const source = unsafeWindow.komootMap.getSource('my_unlocked_regions')
+    if (source) {
+      source.setData(data)
+    } else {
+      unsafeWindow.komootMap.addSource('my_unlocked_regions', {
+        type: 'geojson',
+        data: geoJsonData
+      })
+    }
+
+    unsafeWindow.komootMap.addLayer({
+      'id': 'Tad-my-regions',
+      'type': 'fill',
+      'source': 'my_unlocked_regions',
+      'layout': {},
+      'paint': {
+        'fill-color': [
+          "case",
+          ["boolean", ["get", "region"]],
+          ["rgba", 16, 134, 232, 1],
+          ["rgba", 245, 82, 94, 1]
+        ],
+        'fill-opacity': 0.333
+      }
+    }, "komoot-selected-marker")
+
   }
+
+  function addGlobalStyle(css) {
+    const head = document.getElementsByTagName('head')[0]
+    if (!head) return
+    const style = document.createElement('style')
+    style.innerHTML = css
+    head.append(style)
+  }
+
+  addGlobalStyle(`
+  .maplibregl-ctrl-top-left {
+    max-height: 100%;
+    z-index: 110 !important;
+  }
+
+  #progress-container {
+    line-height: 1.75;
+    font-weight: bold;
+  }
+
+  #progress-container .region {
+    margin: 0;
+    font-weight: normal;
+  }
+
+  #progress-container .region.region--active {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  #progress-container .region.region--active::after {
+    content: '';
+    box-sizing: border-box;
+    display: inline-flex;
+    width: 13px;
+    height: 13px;
+    margin-left: 8px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    border-top-color: #4f850d;
+    border-bottom-color: #4f850d;
+    animation: spinner .6s linear infinite;
+  }
+
+  @keyframes spinner {
+    to {transform: rotate(360deg);}
+  }
+  `)
 
   getMap()
 
