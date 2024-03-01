@@ -1,4 +1,4 @@
-![Icon](icon.png)
+![Icon](https://raw.githubusercontent.com/tadwohlrapp/my-komoot-regions/main/icon.png)
 
 # My Komoot Regions
 
@@ -14,7 +14,7 @@ This script offers two key features:
 
 * Additionally _My Komoot Regions_ shows you the exact number of **regions you can still unlock for free**.
 
-![Screen](screen.png)
+![Screen](https://raw.githubusercontent.com/tadwohlrapp/my-komoot-regions/main/screen.png)
 
 ## Installation
 
@@ -22,6 +22,8 @@ To use userscripts you need to first install a userscript manager. They come as 
 
 - [Violentmonkey](https://violentmonkey.github.io/) - for Chrome, Edge, Firefox, Opera
 - [Tampermonkey](https://tampermonkey.net/) - for Chrome, Edge, Safari, Firefox, Opera
+
+After you have installed a userscript manager, head over to [greasyfork.org/scripts/488715](https://greasyfork.org/scripts/488715) and click on the green "Install this script" button there.
 
 ## Usage
 
