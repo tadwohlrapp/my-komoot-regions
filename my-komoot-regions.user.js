@@ -18,6 +18,7 @@
 
 (function () {
   'use strict'
+  
 
   unsafeWindow.komootMap = null
   let unlockedRegions = []
