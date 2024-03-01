@@ -27,6 +27,6 @@ After you have installed a userscript manager, head over to [greasyfork.org/scri
 
 ## Usage
 
-Head over to https://www.komoot.com/product/regions and find your unlocked regions on the map there :)
+Navigate to https://www.komoot.com/product/regions and find your unlocked regions on the map there :)
 
 Please note: Currently _My Komoot Regions_ only speaks English and German.
