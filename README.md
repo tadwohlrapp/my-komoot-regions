@@ -1,3 +1,5 @@
+![Icon](icon.png)
+
 # My Komoot Regions
 
 **_My Komoot Regions_** is a userscript designed to enhance your Komoot experience by **visualizing your unlocked regions** and **providing information about your remaining free unlocks**.
@@ -12,7 +14,7 @@ This script offers two key features:
 
 * Additionally _My Komoot Regions_ shows you the exact number of **regions you can still unlock for free**.
 
-## Screenshot
+![Screen](screen.png)
 
 ## Installation
 
@@ -20,3 +22,9 @@ To use userscripts you need to first install a userscript manager. They come as 
 
 - [Violentmonkey](https://violentmonkey.github.io/) - for Chrome, Edge, Firefox, Opera
 - [Tampermonkey](https://tampermonkey.net/) - for Chrome, Edge, Safari, Firefox, Opera
+
+## Usage
+
+Head over to https://www.komoot.com/product/regions and find your unlocked regions on the map there :)
+
+Please note: Currently _My Komoot Regions_ only speaks English and German.
