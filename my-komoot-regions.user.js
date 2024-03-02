@@ -5,7 +5,7 @@
 // @description:de  Zeigt dir alle deine bereits freigeschalteten Regionen auf der Komoot Weltkarte an
 // @namespace       https://github.com/tadwohlrapp
 // @author          Tad Wohlrapp
-// @version         0.1.1
+// @version         0.1.2
 // @license         MIT
 // @homepageURL     https://github.com/tadwohlrapp/my-komoot-regions
 // @supportURL      https://github.com/tadwohlrapp/my-komoot-regions/issues
@@ -18,7 +18,6 @@
 
 (function () {
   'use strict'
-  
 
   unsafeWindow.komootMap = null
   let unlockedRegions = []
@@ -94,7 +93,7 @@
   }
 
   function waitForGlobal() {
-    unlockedRegions = unsafeWindow.kmtBoot.getProps().packages.models
+    unlockedRegions = [...new Map(unsafeWindow.kmtBoot.getProps().packages.models.map(region => [region.attributes.region.id, region])).values()]
     if (unlockedRegions) {
       displayHeaderText()
       processUnlockedRegions()
@@ -133,10 +132,8 @@
     document.querySelector('h2').innerHTML = unlockedText() + '<br>' + availableText()
   }
 
-  const getUnlockedRegionIds = regions => regions.map(region => region.attributes.region.id)
-
   function processUnlockedRegions() {
-    const myRegionIds = getUnlockedRegionIds(unlockedRegions)
+    const myRegionIds = unlockedRegions.map(region => region.attributes.region.id)
     const div = document.createElement('div')
     div.id = 'progress-container'
     div.classList.add('tw-text-xs', 'tw-px-3', 'tw-py-1', 'tw-overflow-y-auto', 'tw-bg-white-90')
